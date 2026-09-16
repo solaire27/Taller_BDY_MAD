@@ -1,6 +1,6 @@
 # Taller_BDY_MAD
-Repositorio con los archivos pertinentes a la evaluación 1 de taller de base de datos
+Repositorio con los archivos pertinentes a la evaluación 1 de taller de base de datos.
 Por:
-  Darithza Cardenas
-  Amador Suarez
+  Darithza Cardenas,
+  Amador Suarez y 
   Matias Wenger
