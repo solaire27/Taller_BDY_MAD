@@ -220,3 +220,30 @@ END;
 CREATE TABLE Candidatos_Potenciales (Entrevista_ID NUMBER, Nombre VARCHAR2(100), Correo VARCHAR2(200), Promedio_IA NUMBER(5,2)); 
 
 CREATE TABLE Auditoria_RRHH (ID_Auditoria NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, Entrevista_ID NUMBER, Usuario_BD VARCHAR2(50), Decision_ID NUMBER, Fecha_Hora TIMESTAMP);
+
+BEGIN
+    -- Llamamos al procedimiento dentro del paquete
+    PKG_RRHH_SALMONERA.PRC_GENERAR_REPORTE_ESTADOS;
+END;
+/
+-- Forzarel error de validación
+UPDATE Entrevista 
+SET Estado_ID = 3 
+WHERE ID = 3;
+
+BEGIN
+    PKG_RRHH_SALMONERA.PRC_ACTUALIZAR_POTENTIAL_MAN;
+END;
+/
+
+-- Comprobamos la tabla
+SELECT * FROM Candidatos_Potenciales;
+
+-- se actualiza el dato
+UPDATE Entrevista 
+SET Decision_ID = 2 
+WHERE ID = 1;
+COMMIT;
+
+-- Revisar la tabla auditoría
+SELECT * FROM Auditoria_RRHH;
