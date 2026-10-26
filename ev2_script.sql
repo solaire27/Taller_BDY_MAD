@@ -2,7 +2,7 @@
 CREATE OR REPLACE PACKAGE PKG_RRHH_SALMONERA IS
 
    -- variable publica 
-    v_total_procesados NUMBER := 0;
+    g_total_procesados NUMBER := 0;
 
     -- funcion: calcula el promedio del puntaje de la ia de un candidato especifico
     FUNCTION FN_CALCULAR_PROMEDIO_IA(p_entrevista_id IN NUMBER) RETURN NUMBER;
@@ -84,7 +84,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_RRHH_SALMONERA IS
                     v_candidatos_por_estado := v_candidatos_por_estado + 1;
                     
                     -- Suma al contador publico
-                    v_total_procesados := v_total_procesados + 1;
+                    g_total_procesados := g_total_procesados + 1;
                     
                     DBMS_OUTPUT.PUT_LINE('   - Postulante: ' || reg_entrevista.Nombre_Candidato || ' (' || reg_entrevista.Nombre_Cargo || ')');
                     
@@ -111,7 +111,7 @@ CREATE OR REPLACE PACKAGE BODY PKG_RRHH_SALMONERA IS
             DBMS_OUTPUT.PUT_LINE('---------------------------------------------------------');
         END LOOP; 
         
-        DBMS_OUTPUT.PUT_LINE('Total de candidatos procesados: ' || v_total_procesados);
+        DBMS_OUTPUT.PUT_LINE('Total de candidatos procesados: ' || g_total_procesados);
     END PRC_GENERAR_REPORTE_ESTADOS;
 
     -- PROCEDIMIENTO 2: PRC_ACTUALIZAR_POTENTIAL_MAN
@@ -177,19 +177,19 @@ CREATE OR REPLACE TRIGGER TRG_VALIDAR_EVALUACION
 BEFORE UPDATE OF Estado_ID ON Entrevista
 FOR EACH ROW
 DECLARE
-    v_total_competencias NUMBER;
+    v_total_procesados_competencias NUMBER;
 BEGIN
     -- Si el usuario está intentando cambiar el estado a "Completado" (ID = 3)
     IF :NEW.Estado_ID = 3 THEN
         
         -- cuenta cuantas competencias tiene el candidato
         SELECT COUNT(*)
-        INTO v_total_competencias
+        INTO v_total_procesados_competencias
         FROM Detalle_Competencias
         WHERE Entrevista_ID = :NEW.ID;
         
         -- Si no tiene exactamente 3, cancela la actualización con un error 
-        IF v_total_competencias != 3 THEN
+        IF v_total_procesados_competencias != 3 THEN
             RAISE_APPLICATION_ERROR(-20001, 'REGLA DE NEGOCIO: No se puede finalizar la entrevista. El candidato debe tener exactamente 3 competencias evaluadas por IA.');
         END IF;
         
@@ -220,13 +220,13 @@ END;
 CREATE TABLE Candidatos_Potenciales (Entrevista_ID NUMBER, Nombre VARCHAR2(100), Correo VARCHAR2(200), Promedio_IA NUMBER(5,2)); 
 
 CREATE TABLE Auditoria_RRHH (ID_Auditoria NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, Entrevista_ID NUMBER, Usuario_BD VARCHAR2(50), Decision_ID NUMBER, Fecha_Hora TIMESTAMP);
-
+/
 BEGIN
     -- Llamamos al procedimiento dentro del paquete
     PKG_RRHH_SALMONERA.PRC_GENERAR_REPORTE_ESTADOS;
 END;
 /
--- Forzarel error de validación
+-- Forzamos el error de validación
 UPDATE Entrevista 
 SET Estado_ID = 3 
 WHERE ID = 3;
@@ -236,14 +236,14 @@ BEGIN
 END;
 /
 
--- Comprobamos la tabla
+-- Comprobamos físicamente en la tabla
 SELECT * FROM Candidatos_Potenciales;
 
--- se actualiza el dato
+-- Gerencia actualiza el dato
 UPDATE Entrevista 
 SET Decision_ID = 2 
 WHERE ID = 1;
 COMMIT;
 
--- Revisar la tabla auditoría
+-- Revisamos la tabla espía
 SELECT * FROM Auditoria_RRHH;
