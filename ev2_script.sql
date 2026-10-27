@@ -221,6 +221,14 @@ CREATE TABLE Candidatos_Potenciales (Entrevista_ID NUMBER, Nombre VARCHAR2(100),
 
 CREATE TABLE Auditoria_RRHH (ID_Auditoria NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, Entrevista_ID NUMBER, Usuario_BD VARCHAR2(50), Decision_ID NUMBER, Fecha_Hora TIMESTAMP);
 /
+--demostración de la función fuera del procedimiento
+   SELECT 
+    e.ID AS Entrevista_ID,
+    c.Nombre AS Candidato,
+    PKG_RRHH_SALMONERA.FN_CALCULAR_PROMEDIO_IA(e.ID) AS Promedio_Final
+FROM Entrevista e
+JOIN Candidatos c ON e.Candidatos_Id = c.Id;
+/
 BEGIN
     -- Llamamos al procedimiento dentro del paquete
     PKG_RRHH_SALMONERA.PRC_GENERAR_REPORTE_ESTADOS;
